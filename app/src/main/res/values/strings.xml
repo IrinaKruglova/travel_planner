@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Travel Planner</string>
+    <string name="title_section1">My trips</string>
+    <string name="title_section2">Plan for month</string>
+    <string name="title_section3">Log out</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="action_add">Add</string>
+    <string name="action_save">Save</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Delete</string>
+
+    <string name="login">Log In</string>
+    <string name="register">Register</string>
+
+    <string name="trips_filter_hint">Filter by destination or comment</string>
+    <string name="trips_days_left">days left</string>
+    <string name="trips_days_left_singular">day left</string>
+    <string name="trips_empty">You have no trips yet</string>
+    <string name="trip_edit_header">Trip details</string>
+    <string name="trip_edit_destination">Destination</string>
+    <string name="trip_edit_start">Set start date</string>
+    <string name="trip_edit_end">Set end date</string>
+    <string name="trip_edit_comment">Comment</string>
+    <string name="trip_save_fail">Trip was not saved</string>
+    <string name="trip_deleted">Trip was deleted</string>
+
+</resources>
