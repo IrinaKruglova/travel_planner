@@ -1,29 +1,25 @@
 package com.toptal.travelplanner.ui.activities;
 
-import android.app.Activity;
-
 import android.app.ActionBar;
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
 import com.toptal.travelplanner.R;
+import com.toptal.travelplanner.controller.Controller;
 import com.toptal.travelplanner.controller.db.DatabaseHelper;
+import com.toptal.travelplanner.controller.rest_api.IApiAware;
 import com.toptal.travelplanner.model.Trip;
 import com.toptal.travelplanner.ui.fragments.NavigationDrawerFragment;
 import com.toptal.travelplanner.ui.fragments.TripListFragment;
-
-import java.util.Date;
 
 
 public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
@@ -49,19 +45,26 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Controller.getInstance().registerDbHelper(getHelper());
+
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
 
-        // Set up the drawer.
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
     }
 
     @Override
+    public void onDestroy() {
+        Controller.getInstance().unregisterDbHelper();
+
+        super.onDestroy();
+    }
+
+    @Override
     public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
         Fragment newFragment;
         switch (position) {
             case 0 : newFragment = new TripListFragment(); break;
@@ -100,12 +103,8 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_add) {
             Intent intentAddTrip = new Intent(this, EditTripActivity.class);
             this.startActivityForResult(intentAddTrip, REQUEST_CODE_ADD_TRIP);
@@ -124,15 +123,25 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
         }
 
         Trip newTrip = data.getParcelableExtra(RESULT_TRIP);
+        IApiAware<Boolean> apiAware = new IApiAware<Boolean>() {
+            @Override
+            public void onGetResponse(Boolean response) {
+                if (response) {
+                    updateTripsList();
+                }
+                else {
+                    Toast.makeText(MainActivity.this, "Failed to save data", Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
         switch (requestCode) {
             case REQUEST_CODE_ADD_TRIP:
-                getHelper().insertTrip(newTrip);
+                Controller.getInstance().runAddTripsTask(newTrip, apiAware);
                 break;
             case REQUEST_CODE_EDIT_TRIP:
-                getHelper().updateTrip(newTrip);
+                Controller.getInstance().runUpdateTripsTask(newTrip, apiAware);
                 break;
         }
-        updateTripsList();
     }
 
     private void updateTripsList() {

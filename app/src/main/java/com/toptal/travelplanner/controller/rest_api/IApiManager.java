@@ -4,16 +4,13 @@ import com.toptal.travelplanner.model.Trip;
 
 import java.util.List;
 
-/**
- * Created by user on 23.10.2014.
- */
 public interface IApiManager {
 
-    public static final int CONNECTION_TIMEOUT = 9000;     // ms
-    public static final int SOCKET_TIMEOUT = 15000;     // ms
+    public List<Trip> loadTrips();
 
-    public List<Trip> getTrips();
-    public void addTrip(Trip trip);
-    public void updateTrip(Trip trip);
-    public void deleteTrip(Trip trip);
+    public boolean addTrip(Trip trip);
+
+    public boolean updateTrip(Trip trip);
+
+    public boolean deleteTrip(Trip trip);
 }

@@ -9,9 +9,6 @@ import com.j256.ormlite.table.DatabaseTable;
 import java.util.Calendar;
 import java.util.Date;
 
-/**
- * Created by user on 20.10.2014.
- */
 @DatabaseTable(tableName = "trips")
 public class Trip implements Parcelable {
 

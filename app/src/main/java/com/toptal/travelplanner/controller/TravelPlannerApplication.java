@@ -12,6 +12,9 @@ public class TravelPlannerApplication extends Application{
     @Override
     public void onCreate() {
         super.onCreate();
-        Parse.initialize(this, "Y7G2qM5MgI7JO25LXJz1bKTTy2y4ueA9Z5txJHPs", "plb1pwhCEIk7JDqltpieEi5LQrgX3Gx1Un0BFbR3");
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this,
+                "Y7G2qM5MgI7JO25LXJz1bKTTy2y4ueA9Z5txJHPs",
+                "plb1pwhCEIk7JDqltpieEi5LQrgX3Gx1Un0BFbR3");
     }
 }

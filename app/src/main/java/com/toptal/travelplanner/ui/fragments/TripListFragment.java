@@ -20,7 +20,9 @@ import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.toptal.travelplanner.R;
+import com.toptal.travelplanner.controller.Controller;
 import com.toptal.travelplanner.controller.Util;
+import com.toptal.travelplanner.controller.rest_api.IApiAware;
 import com.toptal.travelplanner.model.Trip;
 import com.toptal.travelplanner.ui.activities.EditTripActivity;
 import com.toptal.travelplanner.ui.activities.MainActivity;
@@ -44,6 +46,14 @@ public class TripListFragment extends ListFragment {
     private ActionMode mActionMode;
     private List<Trip> mTrips;
     private int mSelectedTripPosition;
+
+    private final IApiAware<List<Trip>> mTripsLoadedApiAware = new IApiAware<List<Trip>>() {
+        @Override
+        public void onGetResponse(List<Trip> response) {
+            mTrips = response;
+            setupAdapter();
+        }
+    };
 
     @Override
     public void onAttach(Activity activity) {
@@ -93,9 +103,10 @@ public class TripListFragment extends ListFragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_trips, container, false);
         mFilter = (EditText)rootView.findViewById(R.id.filter);
-        mTrips = ((MainActivity)getActivity()).getHelper().getTrips();
-
+        mTrips = new ArrayList<>();
         setupAdapter();
+        Controller.getInstance().runLoadTripsTask(mTripsLoadedApiAware);
+
         mFilter.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
@@ -127,8 +138,7 @@ public class TripListFragment extends ListFragment {
     }
 
     public void updateList() {
-        mTrips = ((MainActivity)getActivity()).getHelper().getTrips();
-        setupAdapter();
+        Controller.getInstance().runLoadTripsTask(mTripsLoadedApiAware);
     }
 
     private void setupAdapter() {
@@ -173,10 +183,20 @@ public class TripListFragment extends ListFragment {
         getActivity().startActivityForResult(intentEditTrip, MainActivity.REQUEST_CODE_EDIT_TRIP);
     }
 
-    private void deleteTrip(Trip trip) {
-        ((MainActivity)getActivity()).getHelper().deleteTrip(trip);
-        mTrips.remove(trip);
-        setupAdapter();
-        Toast.makeText(getActivity(), getString(R.string.trip_deleted), Toast.LENGTH_SHORT).show();
+    private void deleteTrip(final Trip trip) {
+        Controller.getInstance().runDeleteTripsTask(trip, new IApiAware<Boolean>() {
+            @Override
+            public void onGetResponse(Boolean response) {
+                if (response) {
+                    mTrips.remove(trip);
+                    setupAdapter();
+                    Toast.makeText(getActivity(), getString(R.string.trip_deleted), Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(getActivity(), "Failed to remove trip", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
     }
 }

@@ -8,7 +8,7 @@ import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-import com.toptal.travelplanner.controller.rest_api.ApiManager;
+import com.toptal.travelplanner.model.ParseId;
 import com.toptal.travelplanner.model.Trip;
 
 import java.sql.SQLException;
@@ -27,6 +27,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     private RuntimeExceptionDao<Trip, Integer> tripDao = null;
+    private RuntimeExceptionDao<ParseId, Integer> parseIdDao = null;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -48,7 +49,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         current.add(Calendar.DAY_OF_YEAR, 1);
         Date end = current.getTime();
         Trip trip = new Trip("USA", start, end, "A sample trip to USA in 24 hours");
-        insertTrip(trip);
+        addTrip(trip);
     }
 
     @Override
@@ -60,6 +61,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     public void close() {
         super.close();
         tripDao = null;
+        parseIdDao = null;
     }
 
     public RuntimeExceptionDao<Trip, Integer> getTripDao() {
@@ -69,35 +71,44 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         return tripDao;
     }
 
-    public void insertTrip(Trip trip) {
-        RuntimeExceptionDao<Trip, Integer> dao =  getTripDao();
-        dao.create(trip);
-        ApiManager helper = new ApiManager(new ApiManager.Callback() {
-            @Override
-            public void onDone() {
-                Log.d("Irina","done");
-            }
+    public RuntimeExceptionDao<ParseId, Integer> getParseIdDao() {
+        if (parseIdDao == null) {
+            parseIdDao = getRuntimeExceptionDao(ParseId.class);
+        }
+        return parseIdDao;
+    }
 
-            @Override
-            public void onFail(String errorMessage) {
-                Log.d("Irina","error:" + errorMessage);
-            }
-        });
-        helper.addTrip(trip);
+    /**
+     * you should call "addParseId" for this trip as soon as you get response from Parse.com
+     * @param trip
+     */
+    public void addTrip(Trip trip) {
+        getTripDao().create(trip);
     }
 
     public void updateTrip(Trip trip) {
-        RuntimeExceptionDao<Trip, Integer> dao =  getTripDao();
-        dao.update(trip);
+        getTripDao().update(trip);
     }
 
     public void deleteTrip(Trip trip) {
-        RuntimeExceptionDao<Trip, Integer> dao =  getTripDao();
-        dao.delete(trip);
+        getParseIdDao().delete(getParseId(trip));
+        getTripDao().delete(trip);
     }
 
     public List<Trip> getTrips() {
-        RuntimeExceptionDao<Trip, Integer> dao = getTripDao();
-        return dao.queryForAll();
+        return getTripDao().queryForAll();
     }
+
+    public ParseId getParseId(Trip trip) {
+        List<ParseId> ids = getParseIdDao().queryForEq(ParseId.FIELD_TRIP, trip);
+        if (ids.size()==0)
+            return null;
+        return ids.get(0);
+    }
+
+    public void addParseId(String id, Trip trip) {
+        getParseIdDao().create(new ParseId(id,trip));
+    }
+
+
 }
