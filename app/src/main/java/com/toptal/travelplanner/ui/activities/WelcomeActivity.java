@@ -58,7 +58,7 @@ public class WelcomeActivity extends Activity implements IApiAware<Boolean> {
     @Override
     public void onGetResponse(Boolean response) {
         mProgressBar.setVisibility(View.GONE);
-        if (response) {
+        if (response.equals(true)) {
             Intent mainActivityIntent = new Intent(this, MainActivity.class);
             startActivity(mainActivityIntent);
             finish();

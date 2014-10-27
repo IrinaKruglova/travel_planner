@@ -66,7 +66,7 @@ public class Controller {
             @Override
             protected List<Trip> doInBackground(Void... voids) {
                 List<Trip> result = getApiManager().loadTrips();
-                if (result==null) {
+                if (result==null && dbHelper != null) {
                     result = dbHelper.getTrips();
                 }
                 return result;

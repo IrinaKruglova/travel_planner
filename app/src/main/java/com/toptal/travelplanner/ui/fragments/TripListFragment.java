@@ -48,7 +48,8 @@ public class TripListFragment extends ListFragment {
         @Override
         public void onGetResponse(List<Trip> response) {
             mTrips = response;
-            setupAdapter();
+            if (getActivity()!=null)
+                setupAdapter();
         }
     };
 
