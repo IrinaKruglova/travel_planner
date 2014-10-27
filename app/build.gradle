@@ -33,6 +33,4 @@ dependencies {
     compile 'com.android.support:support-v4:20.0.0'
     compile files('libs/ormlite-android-4.48.jar')
     compile files('libs/ormlite-core-4.48.jar')
-    compile files('libs/httpcore-4.3.2.jar')
-    compile files('libs/httpclient-4.3.5.jar')
 }

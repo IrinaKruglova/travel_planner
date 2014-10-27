@@ -61,14 +61,11 @@ public class Controller {
         return apiManager;
     }
 
-    public synchronized void runLoadTripsTask(final IApiAware<List<Trip>> apiAware) {
+    public synchronized void getTripsFromDB(final IApiAware<List<Trip>> apiAware) {
         AsyncTask<Void, Void, List<Trip>> task = new AsyncTask<Void, Void, List<Trip>>() {
             @Override
             protected List<Trip> doInBackground(Void... voids) {
-                List<Trip> result = getApiManager().loadTrips();
-                if (result==null && dbHelper != null) {
-                    result = dbHelper.getTrips();
-                }
+                List<Trip> result = dbHelper.getTrips();
                 return result;
             }
             @Override
@@ -77,6 +74,33 @@ public class Controller {
             }
         };
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    public synchronized void runSynchronizeTripsTask(final IApiAware<Boolean> apiAware) {
+        ApiTask task = new ApiTask(apiAware) {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                List<Trip> fromServer = getApiManager().loadTrips();
+                List<Trip> fromDB = dbHelper.getTrips();
+                if (fromServer == null || fromDB == null)
+                    return false;
+                for (Trip dbTrip : fromDB) {
+                    boolean found = false;
+                    for (Trip serverTrip : fromServer) {
+                        if (dbTrip.getId() == serverTrip.getId()) {
+                            found = true;
+                            if (!dbTrip.equals(serverTrip) && !getApiManager().updateTrip(dbTrip)) {
+                                return false;
+                            }
+                        }
+                    }
+                    if (!found && !getApiManager().addTrip(dbTrip))
+                        return false;
+                }
+                return true;
+            }
+        };
+        task.run();
     }
 
     public synchronized void runAddTripTask(final Trip trip, final IApiAware<Boolean> apiAware) {

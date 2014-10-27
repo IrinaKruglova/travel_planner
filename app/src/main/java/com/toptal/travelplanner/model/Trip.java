@@ -130,4 +130,31 @@ public class Trip implements Parcelable {
     private int createId() {
         return (int)((Calendar.getInstance().getTime().getTime() + random.nextInt()) % 1000000007);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Trip trip = (Trip) o;
+
+        if (id != trip.id) return false;
+        if (comment != null ? !comment.equals(trip.comment) : trip.comment != null) return false;
+        if (destination != null ? !destination.equals(trip.destination) : trip.destination != null)
+            return false;
+        if (end != null ? !end.equals(trip.end) : trip.end != null) return false;
+        if (start != null ? !start.equals(trip.start) : trip.start != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (destination != null ? destination.hashCode() : 0);
+        result = 31 * result + (start != null ? start.hashCode() : 0);
+        result = 31 * result + (end != null ? end.hashCode() : 0);
+        result = 31 * result + (comment != null ? comment.hashCode() : 0);
+        return result;
+    }
 }

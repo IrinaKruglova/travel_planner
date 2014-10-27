@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.widget.DrawerLayout;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.j256.ormlite.android.apptools.OrmLiteBaseActivity;
@@ -20,6 +22,7 @@ import com.toptal.travelplanner.model.Trip;
 import com.toptal.travelplanner.ui.fragments.MonthPlanFragment;
 import com.toptal.travelplanner.ui.fragments.NavigationDrawerFragment;
 import com.toptal.travelplanner.ui.fragments.TripListFragment;
+import com.toptal.travelplanner.ui.fragments.TripListHolder;
 
 
 public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
@@ -69,7 +72,20 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
         switch (position) {
             case 0 : newFragment = new TripListFragment(); break;
             case 1 : newFragment = new MonthPlanFragment(); break;
-            case 2 : logout(); return;
+            case 2 :
+                final ProgressBar progressBar = (ProgressBar)findViewById(R.id.progress_bar);
+                progressBar.setVisibility(View.VISIBLE);
+                Controller.getInstance().runSynchronizeTripsTask(new IApiAware<Boolean>() {
+                    @Override
+                    public void onGetResponse(Boolean response) {
+                        progressBar.setVisibility(View.GONE);
+                        if (Boolean.FALSE.equals(response)) {
+                            Toast.makeText(MainActivity.this, "Sync failed", Toast.LENGTH_SHORT).show();
+                        }
+                    };
+                });
+                return;
+            case 3 : logout(); return;
             default: return;
         }
         FragmentManager fragmentManager = getFragmentManager();
@@ -139,7 +155,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
                     updateTripsList();
                 }
                 else {
-                    Toast.makeText(MainActivity.this, "Failed to save data", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Failed to save data on server", Toast.LENGTH_SHORT).show();
                 }
             }
         };
@@ -154,13 +170,11 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
     private void updateTripsList() {
 
         FragmentManager fm = getFragmentManager();
-        try {
-            TripListFragment tripsFragment = (TripListFragment) fm.findFragmentById(R.id.container);
+
+        TripListHolder tripsFragment = (TripListHolder) fm.findFragmentById(R.id.container);
+        if (tripsFragment!=null)
             tripsFragment.updateList();
-        }
-        catch (Exception e) {
-            Log.w(TAG, "Failed to update trips list: " + e.getMessage());
-        }
+
     }
 
     private void logout() {

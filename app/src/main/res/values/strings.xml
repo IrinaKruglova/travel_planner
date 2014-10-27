@@ -5,7 +5,8 @@
     <string name="app_welcome">Welcome to Travel Planner!</string>
     <string name="title_section1">My trips</string>
     <string name="title_section2">Plan for month</string>
-    <string name="title_section3">Log out</string>
+    <string name="title_section3">Synchronize</string>
+    <string name="title_section4">Log out</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_add">Add</string>

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -31,27 +32,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class TripListFragment extends ListFragment {
+public class TripListFragment extends TripListHolder {
 
     final static String DAYS_LEFT = "days_left";
     final static String DATES = "dates";
-    final static String INSTANCE_STATE_KEY = "trips";
 
     private EditText mFilter;
-    SimpleAdapter mAdapter;
     private ActionMode.Callback mActionModeCallback;
     private ActionMode mActionMode;
-    private List<Trip> mTrips;
     private int mSelectedTripPosition;
 
-    private final IApiAware<List<Trip>> mTripsLoadedApiAware = new IApiAware<List<Trip>>() {
-        @Override
-        public void onGetResponse(List<Trip> response) {
-            mTrips = response;
-            if (getActivity()!=null)
-                setupAdapter();
-        }
-    };
+    @Override
+    public void onCreate(Bundle state) {
+        super.onCreate(state);
+        setRetainInstance(true);
+    }
 
     @Override
     public void onAttach(Activity activity) {
@@ -76,6 +71,7 @@ public class TripListFragment extends ListFragment {
             @Override
             public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
                 Trip trip = mTrips.get(mSelectedTripPosition);
+                mode.finish();
                 switch (item.getItemId()) {
                     case R.id.action_edit:
                         editTrip(trip);
@@ -94,13 +90,7 @@ public class TripListFragment extends ListFragment {
                 mActionMode = null;
             }
         };
-    }
 
-    @Override
-    public void onSaveInstanceState(Bundle state) {
-        super.onSaveInstanceState(state);
-        Trip[] tripArray = new Trip[mTrips.size()];
-        state.putParcelableArray(INSTANCE_STATE_KEY, mTrips.toArray(tripArray));
     }
 
     @Override
@@ -109,15 +99,8 @@ public class TripListFragment extends ListFragment {
         View rootView = inflater.inflate(R.layout.fragment_trips, container, false);
         mFilter = (EditText)rootView.findViewById(R.id.filter);
         mTrips = new ArrayList<>();
-        if (savedInstanceState!=null) {
-            for (Parcelable parcelable : savedInstanceState.getParcelableArray(INSTANCE_STATE_KEY)) {
-                mTrips.add((Trip) parcelable);
-            }
-        }
         setupAdapter();
-        if (savedInstanceState==null) {
-            Controller.getInstance().runLoadTripsTask(mTripsLoadedApiAware);
-        }
+        Controller.getInstance().getTripsFromDB(mTripsLoadedApiAware);
 
         mFilter.addTextChangedListener(new TextWatcher() {
             @Override
@@ -142,18 +125,15 @@ public class TripListFragment extends ListFragment {
         super.onListItemClick(list, view, position, id);
 
         if (mActionMode != null) {
-            return;
+            mActionMode.finish();
         }
         mSelectedTripPosition = position;
         mActionMode = getActivity().startActionMode(mActionModeCallback);
         view.setSelected(true);
     }
 
-    public void updateList() {
-        Controller.getInstance().runLoadTripsTask(mTripsLoadedApiAware);
-    }
-
-    private void setupAdapter() {
+    @Override
+    protected void setupAdapter() {
         List<HashMap<String,String>> tripMaps = new ArrayList<>();
         for (Trip trip : mTrips) {
             tripMaps.add(createDisplayedData(trip));
@@ -204,7 +184,7 @@ public class TripListFragment extends ListFragment {
                     setupAdapter();
                     Toast.makeText(getActivity(), getString(R.string.trip_deleted), Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(getActivity(), "Failed to remove trip", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Failed to delete trip on server", Toast.LENGTH_SHORT).show();
                 }
             }
         });
