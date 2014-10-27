@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class TripListFragment extends ListFragment {
+public class MonthPlanFragment extends ListFragment {
 
     final static String DAYS_LEFT = "days_left";
     final static String DATES = "dates";
@@ -56,7 +56,7 @@ public class TripListFragment extends ListFragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         ((MainActivity) activity).onSectionAttached(
-                getString(R.string.title_section1));
+                getString(R.string.title_section2));
 
         mActionModeCallback = new ActionMode.Callback() {
 

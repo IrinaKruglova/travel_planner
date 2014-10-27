@@ -8,17 +8,13 @@ import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.RuntimeExceptionDao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-import com.toptal.travelplanner.model.ParseId;
 import com.toptal.travelplanner.model.Trip;
 
 import java.sql.SQLException;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
-/**
- * Created by user on 21.10.2014.
- */
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
     private static final String TAG = DatabaseHelper.class.getCanonicalName();
@@ -27,7 +23,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     private RuntimeExceptionDao<Trip, Integer> tripDao = null;
-    private RuntimeExceptionDao<ParseId, Integer> parseIdDao = null;
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -42,14 +37,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             Log.e(TAG, "Can't create database", e);
             throw new RuntimeException(e);
         }
-
-        // inserting a sample trip
-        Calendar current = Calendar.getInstance();
-        Date start = current.getTime();
-        current.add(Calendar.DAY_OF_YEAR, 1);
-        Date end = current.getTime();
-        Trip trip = new Trip("USA", start, end, "A sample trip to USA in 24 hours");
-        addTrip(trip);
     }
 
     @Override
@@ -61,7 +48,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     public void close() {
         super.close();
         tripDao = null;
-        parseIdDao = null;
     }
 
     public RuntimeExceptionDao<Trip, Integer> getTripDao() {
@@ -71,19 +57,20 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         return tripDao;
     }
 
-    public RuntimeExceptionDao<ParseId, Integer> getParseIdDao() {
-        if (parseIdDao == null) {
-            parseIdDao = getRuntimeExceptionDao(ParseId.class);
-        }
-        return parseIdDao;
-    }
-
     /**
-     * you should call "addParseId" for this trip as soon as you get response from Parse.com
-     * @param trip
+     *
+     * @param trip new trip
+     * @return id of created trip
      */
-    public void addTrip(Trip trip) {
-        getTripDao().create(trip);
+    public int addTrip(Trip trip) {
+        RuntimeExceptionDao<Trip, Integer> dao = getTripDao();
+        dao.create(trip);
+        HashMap<String, Object> query = new HashMap<>();
+        query.put(Trip.FIELD_DESTINATION, trip.getDestination());
+        query.put(Trip.FIELD_START_DATE, trip.getStart());
+        query.put(Trip.FIELD_END_DATE, trip.getEnd());
+        query.put(Trip.FIELD_COMMENT, trip.getComment());
+        return dao.queryForFieldValues(query).get(0).getId();
     }
 
     public void updateTrip(Trip trip) {
@@ -91,24 +78,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     }
 
     public void deleteTrip(Trip trip) {
-        getParseIdDao().delete(getParseId(trip));
         getTripDao().delete(trip);
     }
 
     public List<Trip> getTrips() {
         return getTripDao().queryForAll();
     }
-
-    public ParseId getParseId(Trip trip) {
-        List<ParseId> ids = getParseIdDao().queryForEq(ParseId.FIELD_TRIP, trip);
-        if (ids.size()==0)
-            return null;
-        return ids.get(0);
-    }
-
-    public void addParseId(String id, Trip trip) {
-        getParseIdDao().create(new ParseId(id,trip));
-    }
-
 
 }

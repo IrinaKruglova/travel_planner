@@ -6,13 +6,11 @@ import com.toptal.travelplanner.model.Trip;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by user on 24.10.2014.
- */
 public class TripListParser implements IParser<List<Trip>> {
 
     private static final TripListParser instance = new TripListParser();
@@ -28,15 +26,20 @@ public class TripListParser implements IParser<List<Trip>> {
         TripParser tripParser = TripParser.getInstance();
 
         try {
-            JSONArray json = new JSONArray(response);
-            final int size = json.length();
+            JSONObject json = new JSONObject(response);
+            JSONArray array = json.getJSONArray("results");
+            final int size = array.length();
             List<Trip> trips = new ArrayList<>(size);
             for (int i = 0; i < size; ++i) {
-                trips.add(tripParser.parseResponse(json.get(i).toString()));
+                Trip trip = tripParser.parseResponse(array.get(i).toString());
+                if (trip == null) {
+                    throw new JSONException("Filed to parse trip " + i);
+                }
+                trips.add(tripParser.parseResponse(array.get(i).toString()));
             }
             return trips;
         } catch (JSONException e) {
-            Log.e(TripParser.class.getCanonicalName(), "failed to parse trips");
+            Log.e(TripParser.class.getCanonicalName(), "Failed to parse trips: " + response);
             e.printStackTrace();
             return null;
         }

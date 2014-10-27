@@ -6,14 +6,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/background">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/trip_edit_header"
-        android:id="@+id/textView"
-        android:layout_gravity="center_horizontal" />
-
     <EditText
         android:id="@+id/trip_destination"
         android:layout_width="match_parent"
@@ -39,6 +31,8 @@
         android:id="@+id/trip_comment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:singleLine="false"
+        android:inputType="textMultiLine"
         android:hint="@string/trip_edit_comment"/>
 
 </LinearLayout>

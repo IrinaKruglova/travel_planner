@@ -8,16 +8,20 @@ import com.j256.ormlite.table.DatabaseTable;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @DatabaseTable(tableName = "trips")
 public class Trip implements Parcelable {
 
+    public static final String FIELD_ID = "id";
     public static final String FIELD_DESTINATION = "destination";
     public static final String FIELD_START_DATE = "start";
     public static final String FIELD_END_DATE = "end";
     public static final String FIELD_COMMENT = "comment";
 
-    @DatabaseField(generatedId = true, columnName = "id")
+    @DatabaseField(id = true, columnName = FIELD_ID)
     private int id;
 
     @DatabaseField(columnName = FIELD_DESTINATION, canBeNull = false)
@@ -33,6 +37,7 @@ public class Trip implements Parcelable {
     private String comment;
 
     public Trip() {
+        id = createId();
         destination = "";
         Calendar current = Calendar.getInstance();
         start = current.getTime();
@@ -41,10 +46,19 @@ public class Trip implements Parcelable {
     }
 
     public Trip(String destination, Date start, Date end, String comment) {
+        id = createId();
         this.destination = destination;
         this.start = start;
         this.end = end;
         this.comment = comment;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getDestination() {
@@ -109,5 +123,11 @@ public class Trip implements Parcelable {
         start = new Date(in.readLong());
         end = new Date(in.readLong());
         comment = in.readString();
+    }
+
+    private static Random random = new Random();
+
+    private int createId() {
+        return (int)((Calendar.getInstance().getTime().getTime() + random.nextInt()) % 1000000007);
     }
 }

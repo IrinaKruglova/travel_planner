@@ -1,6 +1,10 @@
 package com.toptal.travelplanner.controller;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 
 import com.toptal.travelplanner.controller.db.DatabaseHelper;
 import com.toptal.travelplanner.controller.rest_api.IApiAware;
@@ -10,14 +14,15 @@ import com.toptal.travelplanner.model.Trip;
 
 import java.util.List;
 
-/**
- * Created by user on 24.10.2014.
- */
 public class Controller {
 
+    private static final String PREFERENCE_USER = "user";
+
     private static Controller instance;
+
     private IApiManager apiManager;
     private DatabaseHelper dbHelper;
+    private Context appContext;
 
     private Controller() {
         apiManager = new ParseApiManager();
@@ -34,12 +39,30 @@ public class Controller {
         return instance;
     }
 
+    public void setApplicationContext(Context applicationContext) {
+        appContext = applicationContext;
+    }
+
+    public String getUser() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(appContext);
+        return preferences.getString(PREFERENCE_USER, null);
+    }
+
+    public void setUser(String user) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(appContext);
+        preferences.edit().putString(PREFERENCE_USER, user).commit();
+    }
+
+    public void dropCredentials() {
+        setUser("");
+    }
+
     public synchronized IApiManager getApiManager() {
         return apiManager;
     }
 
     public synchronized void runLoadTripsTask(final IApiAware<List<Trip>> apiAware) {
-        ApiTask<Void, List<Trip>> task = new ApiTask<Void, List<Trip>>(apiAware) {
+        AsyncTask<Void, Void, List<Trip>> task = new AsyncTask<Void, Void, List<Trip>>() {
             @Override
             protected List<Trip> doInBackground(Void... voids) {
                 List<Trip> result = getApiManager().loadTrips();
@@ -48,23 +71,26 @@ public class Controller {
                 }
                 return result;
             }
+            @Override
+            protected void onPostExecute(List<Trip> result) {
+                apiAware.onGetResponse(result);
+            }
         };
-        task.run();
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    public synchronized void runAddTripsTask(final Trip trip, final IApiAware<Boolean> apiAware) {
-        ApiTask<Void, Boolean> task = new ApiTask<Void, Boolean>(apiAware) {
+    public synchronized void runAddTripTask(final Trip trip, final IApiAware<Boolean> apiAware) {
+        ApiTask task = new ApiTask(apiAware) {
             @Override
             protected Boolean doInBackground(Void... voids) {
-                boolean result = getApiManager().addTrip(trip);
-
+                return getApiManager().addTrip(trip);
             }
         };
         task.run();
     }
 
-    public synchronized void runUpdateTripsTask(final Trip trip, final IApiAware<Boolean> apiAware) {
-        ApiTask<Void, Boolean> task = new ApiTask<Void, Boolean>(apiAware) {
+    public synchronized void runUpdateTripTask(final Trip trip, final IApiAware<Boolean> apiAware) {
+        ApiTask task = new ApiTask(apiAware) {
             @Override
             protected Boolean doInBackground(Void... voids) {
                 return getApiManager().updateTrip(trip);
@@ -73,11 +99,34 @@ public class Controller {
         task.run();
     }
 
-    public synchronized void runDeleteTripsTask(final Trip trip, final IApiAware<Boolean> apiAware) {
-        ApiTask<Void, Boolean> task = new ApiTask<Void, Boolean>(apiAware) {
+    public synchronized void runDeleteTripTask(final Trip trip, final IApiAware<Boolean> apiAware) {
+        ApiTask task = new ApiTask(apiAware) {
             @Override
             protected Boolean doInBackground(Void... voids) {
                 return getApiManager().deleteTrip(trip);
+            }
+        };
+        task.run();
+    }
+
+    public synchronized void runSignupTask(final String user, final String password, final IApiAware<Boolean> apiAware) {
+        Controller.getInstance().setUser(user);
+        ApiTask task = new ApiTask(apiAware) {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                Controller.getInstance().setUser(user);
+                return getApiManager().signUp(user, password);
+            }
+        };
+        task.run();
+    }
+
+    public synchronized void runLoginTask(final String user, final String password, final IApiAware<Boolean> apiAware) {
+        Controller.getInstance().setUser(user);
+        ApiTask task = new ApiTask(apiAware) {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                return getApiManager().logIn(user, password);
             }
         };
         task.run();
@@ -103,23 +152,23 @@ public class Controller {
         this.dbHelper = null;
     }
 
+    private abstract class ApiTask extends AsyncTask<Void, Void, Boolean> {
 
+        private IApiAware<Boolean> mApiAware;
 
-    private abstract class ApiTask<Params, Result> extends AsyncTask<Params, Void, Result> {
-
-        private IApiAware<Result> mApiAware;
-
-        public ApiTask(IApiAware<Result> apiAware) {
+        ApiTask(IApiAware<Boolean> apiAware) {
             mApiAware = apiAware;
         }
 
+        void run() {
+            executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
+
         @Override
-        protected void onPostExecute(Result result) {
+        protected void onPostExecute(Boolean result) {
             mApiAware.onGetResponse(result);
         }
 
-        public void run() {
-            executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        }
     }
+
 }

@@ -9,9 +9,6 @@ import org.json.JSONObject;
 
 import java.util.Date;
 
-/**
- * Created by user on 24.10.2014.
- */
 public class TripParser implements IParser<Trip> {
 
     private static final TripParser instance = new TripParser();
@@ -31,6 +28,7 @@ public class TripParser implements IParser<Trip> {
                     new Date(json.getLong(Trip.FIELD_START_DATE)),
                     new Date(json.getLong(Trip.FIELD_END_DATE)),
                     json.getString(Trip.FIELD_COMMENT));
+            trip.setId(json.getInt(Trip.FIELD_ID));
             return trip;
         } catch (JSONException e) {
             Log.e(TripParser.class.getCanonicalName(),"failed to parse a trip");

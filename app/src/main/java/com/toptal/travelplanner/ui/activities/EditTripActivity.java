@@ -1,5 +1,6 @@
 package com.toptal.travelplanner.ui.activities;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Intent;
@@ -18,9 +19,6 @@ import com.toptal.travelplanner.model.Trip;
 import java.util.Calendar;
 import java.util.Date;
 
-/**
- * Created by user on 21.10.2014.
- */
 public class EditTripActivity extends Activity implements View.OnClickListener {
 
     public static final String EXTRA_TRIP="trip";
@@ -52,6 +50,11 @@ public class EditTripActivity extends Activity implements View.OnClickListener {
             mDestinationView.setText(mTrip.getDestination());
             mCommentView.setText(mTrip.getComment());
         }
+
+        ActionBar actionBar = getActionBar();
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+        actionBar.setDisplayShowTitleEnabled(true);
+        actionBar.setTitle(getTitle());
     }
 
     @Override

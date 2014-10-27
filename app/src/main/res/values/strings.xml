@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name">Travel Planner</string>
+    <string name="app_welcome">Welcome to Travel Planner!</string>
     <string name="title_section1">My trips</string>
     <string name="title_section2">Plan for month</string>
     <string name="title_section3">Log out</string>
@@ -13,13 +14,17 @@
     <string name="action_delete">Delete</string>
 
     <string name="login">Log In</string>
-    <string name="register">Register</string>
+    <string name="register">Sign Up</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="confirm">Confirm password</string>
+    <string name="login_fail">Failed to log in</string>
+    <string name="register_fail">Failed to sign up</string>
 
-    <string name="trips_filter_hint">Filter by destination or comment</string>
-    <string name="trips_days_left">days left</string>
-    <string name="trips_days_left_singular">day left</string>
+
+    <string name="trips_filter_hint">Type destination, comment or date</string>
     <string name="trips_empty">You have no trips yet</string>
-    <string name="trip_edit_header">Trip details</string>
+    <string name="trip_edit_title">Edit Trip</string>
     <string name="trip_edit_destination">Destination</string>
     <string name="trip_edit_start">Set start date</string>
     <string name="trip_edit_end">Set end date</string>

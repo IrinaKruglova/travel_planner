@@ -10,7 +10,8 @@
         android:id="@+id/filter"
         android:layout_width="match_parent"
         android:layout_height="@dimen/text_field_height"
-        android:hint="@string/trips_filter_hint"/>
+        android:hint="@string/trips_filter_hint"
+        android:drawableLeft="@android:drawable/ic_menu_search"/>
 
     <ListView
         android:id="@android:id/list"

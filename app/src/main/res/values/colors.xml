@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="title">#EAE</color>
+    <color name="title">#00C</color>
     <color name="date">#00C</color>
     <color name="days_left">#C00</color>
 </resources>

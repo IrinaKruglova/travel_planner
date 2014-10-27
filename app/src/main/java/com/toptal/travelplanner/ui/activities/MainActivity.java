@@ -1,7 +1,6 @@
 package com.toptal.travelplanner.ui.activities;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
@@ -18,6 +17,7 @@ import com.toptal.travelplanner.controller.Controller;
 import com.toptal.travelplanner.controller.db.DatabaseHelper;
 import com.toptal.travelplanner.controller.rest_api.IApiAware;
 import com.toptal.travelplanner.model.Trip;
+import com.toptal.travelplanner.ui.fragments.MonthPlanFragment;
 import com.toptal.travelplanner.ui.fragments.NavigationDrawerFragment;
 import com.toptal.travelplanner.ui.fragments.TripListFragment;
 
@@ -68,6 +68,8 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
         Fragment newFragment;
         switch (position) {
             case 0 : newFragment = new TripListFragment(); break;
+            case 1 : newFragment = new MonthPlanFragment(); break;
+            case 2 : logout(); return;
             default: return;
         }
         FragmentManager fragmentManager = getFragmentManager();
@@ -114,15 +116,22 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(final int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode != RESULT_OK) {
             Toast.makeText(this, getString(R.string.trip_save_fail), Toast.LENGTH_SHORT).show();
             return;
         }
+        final Trip newTrip = data.getParcelableExtra(RESULT_TRIP);
+        if (requestCode == REQUEST_CODE_ADD_TRIP) {
+            int id = getHelper().addTrip(newTrip);
+            newTrip.setId(id);
+        }
+        else {
+            getHelper().updateTrip(newTrip);
+        }
 
-        Trip newTrip = data.getParcelableExtra(RESULT_TRIP);
         IApiAware<Boolean> apiAware = new IApiAware<Boolean>() {
             @Override
             public void onGetResponse(Boolean response) {
@@ -134,13 +143,11 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
                 }
             }
         };
-        switch (requestCode) {
-            case REQUEST_CODE_ADD_TRIP:
-                Controller.getInstance().runAddTripsTask(newTrip, apiAware);
-                break;
-            case REQUEST_CODE_EDIT_TRIP:
-                Controller.getInstance().runUpdateTripsTask(newTrip, apiAware);
-                break;
+        if (requestCode == REQUEST_CODE_ADD_TRIP) {
+            Controller.getInstance().runAddTripTask(newTrip, apiAware);
+        }
+        else {
+            Controller.getInstance().runUpdateTripTask(newTrip, apiAware);
         }
     }
 
@@ -154,6 +161,13 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
         catch (Exception e) {
             Log.w(TAG, "Failed to update trips list: " + e.getMessage());
         }
+    }
+
+    private void logout() {
+        Controller.getInstance().dropCredentials();
+        Intent intent = new Intent(this, WelcomeActivity.class);
+        startActivity(intent);
+        finish();
     }
 
 }
