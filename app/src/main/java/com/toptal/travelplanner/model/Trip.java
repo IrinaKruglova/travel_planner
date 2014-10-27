@@ -53,6 +53,11 @@ public class Trip implements Parcelable {
         this.comment = comment;
     }
 
+    public Trip(int id, String destination, Date start, Date end, String comment) {
+        this(destination, start, end, comment);
+        this.id = id;
+    }
+
     public int getId() {
         return id;
     }

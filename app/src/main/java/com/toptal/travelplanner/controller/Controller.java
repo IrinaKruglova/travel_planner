@@ -20,12 +20,12 @@ public class Controller {
 
     private static Controller instance;
 
-    private IApiManager apiManager;
+    private ParseApiManager apiManager;
     private DatabaseHelper dbHelper;
     private Context appContext;
 
     private Controller() {
-        apiManager = new ParseApiManager();
+        apiManager = new ParseApiManager("");
     }
 
     public static Controller getInstance() {
@@ -41,6 +41,7 @@ public class Controller {
 
     public void setApplicationContext(Context applicationContext) {
         appContext = applicationContext;
+        apiManager.setUser(getUser());
     }
 
     public String getUser() {
@@ -101,6 +102,21 @@ public class Controller {
             }
         };
         task.run();
+    }
+
+    public synchronized void runLoadTripsTask(final IApiAware<List<Trip>> apiAware) {
+        AsyncTask<Void, Void, List<Trip>> task = new AsyncTask<Void, Void, List<Trip>>() {
+            @Override
+            protected List<Trip> doInBackground(Void... voids) {
+                List<Trip> result = getApiManager().loadTrips();
+                return result;
+            }
+            @Override
+            protected void onPostExecute(List<Trip> result) {
+                apiAware.onGetResponse(result);
+            }
+        };
+        task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     public synchronized void runAddTripTask(final Trip trip, final IApiAware<Boolean> apiAware) {

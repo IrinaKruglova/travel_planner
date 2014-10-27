@@ -24,11 +24,11 @@ public class TripParser implements IParser<Trip> {
         try {
             JSONObject json = new JSONObject(response);
 
-            Trip trip = new Trip(json.getString(Trip.FIELD_DESTINATION),
+            Trip trip = new Trip(json.getInt(Trip.FIELD_ID),
+                    json.getString(Trip.FIELD_DESTINATION),
                     new Date(json.getLong(Trip.FIELD_START_DATE)),
                     new Date(json.getLong(Trip.FIELD_END_DATE)),
                     json.getString(Trip.FIELD_COMMENT));
-            trip.setId(json.getInt(Trip.FIELD_ID));
             return trip;
         } catch (JSONException e) {
             Log.e(TripParser.class.getCanonicalName(),"failed to parse a trip");

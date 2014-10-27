@@ -3,7 +3,6 @@ package com.toptal.travelplanner.controller.rest_api;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.toptal.travelplanner.controller.Controller;
 import com.toptal.travelplanner.controller.rest_api.parsers.TripListParser;
 import com.toptal.travelplanner.model.Trip;
 
@@ -53,13 +52,18 @@ public class ParseApiManager implements IApiManager {
     private static final String USERS_PATH = "users";
     private static final String LOGIN_PATH = "login/";
 
-    public ParseApiManager() {
+    private String user;
 
+    public ParseApiManager(String user) {
+        this.user = user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 
     @Override
     public List<Trip> loadTrips() {
-        String user = Controller.getInstance().getUser();
         if (TextUtils.isEmpty(user)) {
             Log.e(TAG, "User is not logged in");
             return null;
@@ -90,7 +94,6 @@ public class ParseApiManager implements IApiManager {
 
     @Override
     public boolean addTrip(Trip trip) {
-        String user = Controller.getInstance().getUser();
         if (TextUtils.isEmpty(user)) {
             Log.e(TAG, "User is not logged in");
             return false;
@@ -131,7 +134,6 @@ public class ParseApiManager implements IApiManager {
             Log.e(TAG, "parse.com objectId not found, id="+trip.getId());
             return false;
         }
-        String user = Controller.getInstance().getUser();
         if (TextUtils.isEmpty(user)) {
             Log.e(TAG, "User is not logged in");
             return false;
@@ -172,7 +174,6 @@ public class ParseApiManager implements IApiManager {
             Log.e(TAG, "parse.com objectId not found, id="+trip.getId());
             return false;
         }
-        String user = Controller.getInstance().getUser();
         if (TextUtils.isEmpty(user)) {
             Log.e(TAG, "User is not logged in");
             return false;
@@ -252,7 +253,6 @@ public class ParseApiManager implements IApiManager {
     }
 
     private String findTripParseId(int localId) {
-        String user = Controller.getInstance().getUser();
         if (TextUtils.isEmpty(user)) {
             Log.e(TAG, "User is not logged in");
             return null;
