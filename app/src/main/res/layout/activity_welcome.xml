@@ -31,17 +31,17 @@
         android:hint="@string/password"/>
 
     <Button
+        android:id="@+id/button_register"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/register"
-        android:onClick="onRegisterClick"/>
+        android:text="@string/register"/>
 
     <Button
+        android:id="@+id/button_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:text="@string/login"
-        android:onClick="onLoginClick"/>
+        android:text="@string/login"/>
 
     <ProgressBar
         style="?android:attr/progressBarStyleLarge"

@@ -25,16 +25,11 @@ public class TestTask extends AsyncTask<Void, Void, Boolean> {
 
             check(oldUser&&!newUser || newUser&&!oldUser);
 
-            List<Trip> trips = apiManager.loadTrips();
-            for (Trip trip : trips) {
-                apiManager.deleteTrip(trip);
-            }
-
             Date now = Calendar.getInstance().getTime();
             final Trip trip1 = new Trip("Russia", now, now, "comment");
 
             apiManager.addTrip(trip1);
-            trips = apiManager.loadTrips();
+            List<Trip> trips = apiManager.loadTrips();
             check(trips.contains(trip1));
 
             trip1.setComment("new comment");
@@ -56,6 +51,9 @@ public class TestTask extends AsyncTask<Void, Void, Boolean> {
             trips = apiManager.loadTrips();
             check(!trips.contains(trip1));
             check(trips.contains(trip2));
+
+            apiManager.deleteTrip(trip2);
+            check(apiManager.loadTrips().size()==0);
 
             ApplicationTest.taskResult = true;
         }

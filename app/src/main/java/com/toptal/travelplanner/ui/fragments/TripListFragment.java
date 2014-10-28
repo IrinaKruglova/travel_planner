@@ -176,14 +176,13 @@ public class TripListFragment extends TripListHolder {
 
     private void deleteTrip(final Trip trip) {
         ((MainActivity)getActivity()).getHelper().deleteTrip(trip);
+        mTrips.remove(trip);
+        setupAdapter();
+        Toast.makeText(getActivity(), getString(R.string.trip_deleted), Toast.LENGTH_SHORT).show();
         Controller.getInstance().runDeleteTripTask(trip, new IApiAware<Boolean>() {
             @Override
             public void onGetResponse(Boolean response) {
-                if (response) {
-                    mTrips.remove(trip);
-                    setupAdapter();
-                    Toast.makeText(getActivity(), getString(R.string.trip_deleted), Toast.LENGTH_SHORT).show();
-                } else {
+                if (!response) {
                     Toast.makeText(getActivity(), "Failed to delete trip on server", Toast.LENGTH_SHORT).show();
                 }
             }

@@ -18,11 +18,4 @@
         android:name="com.toptal.travelplanner.ui.fragments.NavigationDrawerFragment"
         tools:layout="@layout/fragment_navigation_drawer" />
 
-    <ProgressBar
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/progress_bar"
-        android:layout_gravity="center"/>
-
 </android.support.v4.widget.DrawerLayout>

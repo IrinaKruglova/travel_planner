@@ -20,7 +20,6 @@ public class ApplicationTest extends ApplicationTestCase<Application> {
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         while (!taskCompleted) { }
-        Log.d("Irina", "!" + taskResult);
-        assert(taskResult);
+        assertTrue(taskResult);
     }
 }

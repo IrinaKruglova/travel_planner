@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@android:id/text1"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textColor="@android:color/holo_blue_dark"/>
+        android:textColor="@color/date"/>
 
     <TextView android:id="@android:id/text2"
         android:layout_width="match_parent"

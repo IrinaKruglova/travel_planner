@@ -52,6 +52,7 @@ public class Controller {
     public void setUser(String user) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(appContext);
         preferences.edit().putString(PREFERENCE_USER, user).commit();
+        apiManager.setUser(user);
     }
 
     public void dropCredentials() {
@@ -77,14 +78,18 @@ public class Controller {
         task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    public synchronized void runSynchronizeTripsTask(final IApiAware<Boolean> apiAware) {
-        ApiTask task = new ApiTask(apiAware) {
+    public synchronized void runSynchronizeTripsTask(final IApiAware<Boolean> apiAware,
+                                                     final IApiAware<Integer> progressAware) {
+        ApiTask task = new ApiTask(apiAware, progressAware) {
             @Override
             protected Boolean doInBackground(Void... voids) {
                 List<Trip> fromServer = getApiManager().loadTrips();
+                publishProgress(27);
                 List<Trip> fromDB = dbHelper.getTrips();
+                publishProgress(30);
                 if (fromServer == null || fromDB == null)
                     return false;
+                int progressCount = 0;
                 for (Trip dbTrip : fromDB) {
                     boolean found = false;
                     for (Trip serverTrip : fromServer) {
@@ -97,6 +102,20 @@ public class Controller {
                     }
                     if (!found && !getApiManager().addTrip(dbTrip))
                         return false;
+                    publishProgress(30 + 50 * (++progressCount) / fromDB.size());
+                }
+                progressCount = 0;
+                for (Trip serverTrip : fromServer) {
+                    boolean found = false;
+                    for (Trip dbTrip : fromDB) {
+                        if (dbTrip.getId() == serverTrip.getId()) {
+                            found = true;
+                        }
+                    }
+                    if (!found) {
+                        dbHelper.addTrip(serverTrip);
+                    }
+                    publishProgress(80 + 20 * (++progressCount) / fromServer.size());
                 }
                 return true;
             }
@@ -150,11 +169,9 @@ public class Controller {
     }
 
     public synchronized void runSignupTask(final String user, final String password, final IApiAware<Boolean> apiAware) {
-        Controller.getInstance().setUser(user);
         ApiTask task = new ApiTask(apiAware) {
             @Override
             protected Boolean doInBackground(Void... voids) {
-                Controller.getInstance().setUser(user);
                 return getApiManager().signUp(user, password);
             }
         };
@@ -162,7 +179,6 @@ public class Controller {
     }
 
     public synchronized void runLoginTask(final String user, final String password, final IApiAware<Boolean> apiAware) {
-        Controller.getInstance().setUser(user);
         ApiTask task = new ApiTask(apiAware) {
             @Override
             protected Boolean doInBackground(Void... voids) {
@@ -186,18 +202,24 @@ public class Controller {
     }
 
     /**
-     * callthis in Activity.inDestroy
+     * call this in Activity.inDestroy
      */
     public void unregisterDbHelper() {
         this.dbHelper = null;
     }
 
-    private abstract class ApiTask extends AsyncTask<Void, Void, Boolean> {
+    private abstract class ApiTask extends AsyncTask<Void, Integer, Boolean> {
 
         private IApiAware<Boolean> mApiAware;
+        private IApiAware<Integer> mProgressAware;
 
         ApiTask(IApiAware<Boolean> apiAware) {
             mApiAware = apiAware;
+        }
+
+        ApiTask(IApiAware<Boolean> apiAware, IApiAware<Integer> progressAware) {
+            mApiAware = apiAware;
+            mProgressAware = progressAware;
         }
 
         void run() {
@@ -207,6 +229,13 @@ public class Controller {
         @Override
         protected void onPostExecute(Boolean result) {
             mApiAware.onGetResponse(result);
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... progress) {
+            if (mProgressAware!=null) {
+                mProgressAware.onGetResponse(progress[0]);
+            }
         }
 
     }

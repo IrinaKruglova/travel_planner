@@ -3,6 +3,7 @@ package com.toptal.travelplanner.ui.activities;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -73,17 +74,7 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
             case 0 : newFragment = new TripListFragment(); break;
             case 1 : newFragment = new MonthPlanFragment(); break;
             case 2 :
-                final ProgressBar progressBar = (ProgressBar)findViewById(R.id.progress_bar);
-                progressBar.setVisibility(View.VISIBLE);
-                Controller.getInstance().runSynchronizeTripsTask(new IApiAware<Boolean>() {
-                    @Override
-                    public void onGetResponse(Boolean response) {
-                        progressBar.setVisibility(View.GONE);
-                        if (Boolean.FALSE.equals(response)) {
-                            Toast.makeText(MainActivity.this, "Sync failed", Toast.LENGTH_SHORT).show();
-                        }
-                    };
-                });
+                launchSynchronization();
                 return;
             case 3 : logout(); return;
             default: return;
@@ -93,6 +84,35 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
                 .replace(R.id.container, newFragment)
                 .commit();
     }
+
+    private void launchSynchronization() {
+        final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+        progressDialog.setCancelable(false);
+        progressDialog.setTitle("Synchronizing ...");
+        progressDialog.setMessage("Synchronizing in progress ...");
+        progressDialog.setProgressStyle(progressDialog.STYLE_HORIZONTAL);
+        progressDialog.setProgress(0);
+        progressDialog.setMax(100);
+        progressDialog.show();
+        Controller.getInstance().runSynchronizeTripsTask(new IApiAware<Boolean>() {
+            @Override
+            public void onGetResponse(Boolean response) {
+                mNavigationDrawerFragment.selectItem(0);
+                progressDialog.dismiss();
+                if (Boolean.FALSE.equals(response)) {
+                    Toast.makeText(MainActivity.this, "Sync failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            ;
+        }, new IApiAware<Integer>() {
+            @Override
+            public void onGetResponse(Integer response) {
+                progressDialog.setProgress(response);
+            }
+        });
+    }
+
 
     public void onSectionAttached(String sectionTitle) {
        mTitle = sectionTitle;
@@ -147,14 +167,12 @@ public class MainActivity extends OrmLiteBaseActivity<DatabaseHelper>
         else {
             getHelper().updateTrip(newTrip);
         }
+        updateTripsList();
 
         IApiAware<Boolean> apiAware = new IApiAware<Boolean>() {
             @Override
             public void onGetResponse(Boolean response) {
-                if (response) {
-                    updateTripsList();
-                }
-                else {
+                if (!response) {
                     Toast.makeText(MainActivity.this, "Failed to save data on server", Toast.LENGTH_SHORT).show();
                 }
             }

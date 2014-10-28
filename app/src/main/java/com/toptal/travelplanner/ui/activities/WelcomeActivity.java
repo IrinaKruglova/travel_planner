@@ -13,7 +13,7 @@ import com.toptal.travelplanner.R;
 import com.toptal.travelplanner.controller.Controller;
 import com.toptal.travelplanner.controller.rest_api.IApiAware;
 
-public class WelcomeActivity extends Activity implements IApiAware<Boolean> {
+public class WelcomeActivity extends Activity implements IApiAware<Boolean>, View.OnClickListener {
 
     private boolean isNewUser;
 
@@ -37,28 +37,35 @@ public class WelcomeActivity extends Activity implements IApiAware<Boolean> {
             startActivity(intent);
             finish();
         }
+
+        findViewById(R.id.button_login).setOnClickListener(this);
+        findViewById(R.id.button_register).setOnClickListener(this);
     }
 
-    public void onLoginClick(View view) {
-        isNewUser = false;
+    @Override
+    public void onClick(View view) {
+        isNewUser = (view.getId() == R.id.button_register);
         String user = mUserView.getText().toString();
         String password = mPasswordView.getText().toString();
+        if (!isWord(user) || !isWord(password)) {
+            Toast.makeText(this, "Username and password must contain only latin letters and digits",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
         mProgressBar.setVisibility(View.VISIBLE);
-        Controller.getInstance().runLoginTask(user, password, this);
-    }
-
-    public void onRegisterClick(View view) {
-        isNewUser = true;
-        String user = mUserView.getText().toString();
-        String password = mPasswordView.getText().toString();
-        mProgressBar.setVisibility(View.VISIBLE);
-        Controller.getInstance().runSignupTask(user, password, this);
+        if (isNewUser) {
+            Controller.getInstance().runSignupTask(user, password, this);
+        }
+        else {
+            Controller.getInstance().runLoginTask(user, password, this);
+        }
     }
 
     @Override
     public void onGetResponse(Boolean response) {
         mProgressBar.setVisibility(View.GONE);
         if (Boolean.TRUE.equals(response)) {
+            Controller.getInstance().setUser(mUserView.getText().toString());
             Intent mainActivityIntent = new Intent(this, MainActivity.class);
             startActivity(mainActivityIntent);
             finish();
@@ -69,5 +76,14 @@ public class WelcomeActivity extends Activity implements IApiAware<Boolean> {
                     Toast.LENGTH_SHORT)
                     .show();
         }
+    }
+
+    private boolean isWord(String word) {
+        for (int i = 0; i<word.length(); ++i) {
+            char c = word.charAt(i);
+            if (!Character.isLetter(c) && !Character.isDigit(c))
+                return false;
+        }
+        return true;
     }
 }
